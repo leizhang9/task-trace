@@ -24,6 +24,7 @@
  */
 
 #include "rtx_lib.h"
+#include "tasktrace.h"
 
 
 //  OS Runtime Object Memory Usage
@@ -489,6 +490,9 @@ static void osRtxThreadBlock (os_thread_t *thread) {
 /// \param[in]  thread          thread object.
 void osRtxThreadSwitch (os_thread_t *thread) {
 
+#if (USING_TASKTRACE != 0)
+  tasktrace_note_resume((osThreadId_t)thread);
+#endif
   thread->state = osRtxThreadRunning;
   SetPrivileged((bool_t)((thread->attr & osThreadPrivileged) != 0U));
   osRtxInfo.thread.run.next = thread;
@@ -2443,6 +2447,9 @@ osThreadId_t osThreadNew (osThreadFunc_t func, void *argument, const osThreadAtt
     thread_id = NULL;
   } else {
     thread_id = __svcThreadNew(func, argument, attr);
+#if (USING_TASKTRACE != 0)
+    tasktrace_note_resume(attr, thread_id);
+#endif
   }
   return thread_id;
 }
